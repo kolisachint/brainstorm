@@ -27,8 +27,6 @@ select
     revenue,
     traffic_source,
     campaign_id,
-    party_id,
-    party_sk,
     is_late_arrival,
     page_sk,
     device_sk,

@@ -41,7 +41,7 @@ party_metrics as (
 party_mapping_enriched as (
     select
         pvp.party_id,
-        min(pvp.visitor_id) keep (dense_rank first order by
+        array_agg(pvp.visitor_id order by
             case pvp.party_id_source
                 when 'crm' then 1
                 when 'loyalty' then 2
@@ -49,7 +49,8 @@ party_mapping_enriched as (
                 when 'mcid' then 4
                 else 5
             end
-        ) as primary_visitor_id,
+            limit 1
+        )[offset(0)] as primary_visitor_id,
         count(distinct pvp.visitor_id) as visitor_id_count,
         count(distinct pvp.mcid) as mcid_count
     from {{ ref('party_visitor_mapping') }} pvp

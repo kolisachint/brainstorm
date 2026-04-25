@@ -76,10 +76,6 @@ with raw_data as (
         post_evar1, post_evar2, post_evar3, post_evar4, post_evar5,
         post_evar10, post_evar20, post_evar50,
         post_prop1, post_prop2, post_prop3, post_prop4, post_prop5,
-        nullif(post_evar1, '') as party_id,
-        case when nullif(post_evar1, '') is not null
-             then {{ generate_surrogate_key(['nullif(post_evar1, \'\')']) }}
-        end as party_sk,
         {{ generate_surrogate_key(['net.path(post_page_url)', 'post_pagename']) }} as page_sk,
         {{ generate_surrogate_key(['browser', 'os', 'cast(mobile_id is not null as string)']) }} as device_sk,
         {{ generate_surrogate_key(['country', 'region', 'city']) }} as geo_sk,
