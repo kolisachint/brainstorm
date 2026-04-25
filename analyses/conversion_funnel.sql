@@ -10,8 +10,8 @@ with funnel_steps as (
         max(case when page_type = 'cart' then 1 else 0 end) as step_3_cart,
         max(case when page_type = 'checkout' then 1 else 0 end) as step_4_checkout,
         max(case when revenue > 0 then 1 else 0 end) as step_5_purchase
-    from {{ ref('event_fact') }} e
-    left join {{ ref('dim_page') }} p on e.page_sk = p.page_sk
+    from {{ ref('fct_events') }} e
+    left join {{ ref('dim_pages') }} p on e.page_sk = p.page_sk
     where event_date between date_sub(current_date(), interval 7 day) and current_date()
     group by 1, 2
 )

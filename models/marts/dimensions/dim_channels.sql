@@ -26,4 +26,4 @@ with channels as (
     qualify row_number() over (partition by channel_sk order by event_timestamp desc) = 1
 )
 
-select distinct * from channels
+select * from channels

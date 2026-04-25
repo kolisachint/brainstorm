@@ -5,7 +5,7 @@ with visitor_first_seen as (
     select
         visitor_id,
         min(session_date) as first_session_date
-    from {{ ref('session_fact') }}
+    from {{ ref('fct_sessions') }}
     group by 1
 )
 

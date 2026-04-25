@@ -29,4 +29,4 @@ with campaigns as (
     qualify row_number() over (partition by campaign_sk order by event_timestamp desc) = 1
 )
 
-select distinct * from campaigns
+select * from campaigns

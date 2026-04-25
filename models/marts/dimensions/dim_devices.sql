@@ -26,4 +26,4 @@ with devices as (
     qualify row_number() over (partition by device_sk order by event_timestamp desc) = 1
 )
 
-select distinct * from devices
+select * from devices

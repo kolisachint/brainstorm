@@ -11,8 +11,8 @@ select
     sum(s.session_revenue) as total_revenue,
     avg(s.session_revenue) as avg_revenue_per_session,
     sum(s.session_revenue) / count(distinct s.visitor_id) as revenue_per_visitor
-from {{ ref('session_fact') }} s
-left join {{ ref('dim_channel') }} c on s.channel_sk = c.channel_sk
+    from {{ ref('fct_sessions') }} s
+    left join {{ ref('dim_channels') }} c on s.channel_sk = c.channel_sk
 where s.session_date between date_sub(current_date(), interval 30 day) and current_date()
   and s.session_revenue > 0
 group by 1, 2, 3, 4
