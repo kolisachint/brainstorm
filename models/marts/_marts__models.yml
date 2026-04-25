@@ -1,0 +1,195 @@
+version: 2
+
+models:
+  - name: dim_pages
+    description: "Page dimension table"
+    columns:
+      - name: page_sk
+        description: "Surrogate key for page"
+        tests:
+          - unique
+          - not_null
+      - name: page_path
+        description: "URL path of the page"
+      - name: page_name
+        description: "Name of the page"
+      - name: page_type
+        description: "Type of page (home, product, cart, etc.)"
+
+  - name: dim_devices
+    description: "Device dimension table"
+    columns:
+      - name: device_sk
+        description: "Surrogate key for device"
+        tests:
+          - unique
+          - not_null
+      - name: browser
+        description: "Browser name"
+      - name: os
+        description: "Operating system"
+      - name: device_type
+        description: "Type of device (mobile, tablet, desktop)"
+
+  - name: dim_channels
+    description: "Marketing channel dimension table"
+    columns:
+      - name: channel_sk
+        description: "Surrogate key for channel"
+        tests:
+          - unique
+          - not_null
+      - name: channel_name
+        description: "Channel name"
+      - name: channel_type
+        description: "Channel type (paid, organic, direct, referral)"
+
+  - name: dim_geos
+    description: "Geography dimension table"
+    columns:
+      - name: geo_sk
+        description: "Surrogate key for geography"
+        tests:
+          - unique
+          - not_null
+      - name: country
+        description: "Country name"
+      - name: region
+        description: "Region/State name"
+      - name: city
+        description: "City name"
+
+  - name: dim_campaigns
+    description: "Campaign dimension table"
+    columns:
+      - name: campaign_sk
+        description: "Surrogate key for campaign"
+        tests:
+          - unique
+          - not_null
+      - name: campaign_id
+        description: "Campaign tracking code/ID"
+
+  - name: dim_visitor_profiles
+    description: "Visitor profile dimension table with lifetime metrics - SCD Type 2"
+    columns:
+      - name: visitor_sk
+        description: "Surrogate key for visitor"
+        tests:
+          - not_null
+      - name: visitor_id
+        description: "Visitor identifier"
+        tests:
+          - not_null
+      - name: valid_from
+        description: "SCD valid from timestamp"
+        tests:
+          - not_null
+      - name: valid_to
+        description: "SCD valid to timestamp"
+        tests:
+          - not_null
+      - name: is_current
+        description: "True if this is the current SCD version"
+
+  - name: dim_party_profiles
+    description: "Party profile dimension table with cross-device lifetime metrics - SCD Type 2"
+    columns:
+      - name: party_sk
+        description: "Surrogate key for party"
+        tests:
+          - not_null
+      - name: party_id
+        description: "Party identifier (cross-device customer ID)"
+        tests:
+          - not_null
+      - name: cross_device_visitors
+        description: "Number of unique visitor IDs associated with this party"
+      - name: primary_id_source
+        description: "Highest-confidence identity source (crm, loyalty, login)"
+      - name: valid_from
+        description: "SCD valid from timestamp"
+        tests:
+          - not_null
+      - name: valid_to
+        description: "SCD valid to timestamp"
+        tests:
+          - not_null
+      - name: is_current
+        description: "True if this is the current SCD version"
+
+  - name: fct_events
+    description: "Atomic event fact table - one row per Adobe Analytics hit"
+    columns:
+      - name: event_id
+        description: "Unique event identifier"
+        tests:
+          - unique
+          - not_null
+      - name: visitor_id
+        description: "Visitor identifier"
+        tests:
+          - not_null
+      - name: party_id
+        description: "Party identifier (cross-device customer ID)"
+      - name: party_id_source
+        description: "Source of party_id"
+      - name: session_id
+        description: "Session identifier"
+        tests:
+          - not_null
+      - name: event_timestamp
+        description: "Event timestamp"
+        tests:
+          - not_null
+
+  - name: fct_sessions
+    description: "Session-level fact table - one row per session/visit"
+    columns:
+      - name: session_id
+        description: "Unique session identifier"
+        tests:
+          - unique
+          - not_null
+      - name: visitor_id
+        description: "Visitor identifier"
+        tests:
+          - not_null
+      - name: party_id
+        description: "Party identifier (cross-device customer ID)"
+      - name: party_id_source
+        description: "Source of party_id"
+      - name: session_start_timestamp
+        description: "Session start timestamp"
+        tests:
+          - not_null
+      - name: bounce_flag
+        description: "True if session had only 1 hit"
+
+  - name: fct_identity_graph
+    description: "Identity graph fact table mapping party to visitor relationships"
+    columns:
+      - name: party_id
+        description: "Party identifier"
+        tests:
+          - not_null
+      - name: visitor_id
+        description: "Visitor identifier"
+        tests:
+          - not_null
+      - name: identity_source
+        description: "Source that linked this visitor to the party"
+
+  - name: party_visitor_mapping
+    description: "Bridge table for party-to-visitor many-to-many relationships"
+    columns:
+      - name: party_sk
+        description: "Party surrogate key"
+        tests:
+          - not_null
+      - name: visitor_sk
+        description: "Visitor surrogate key"
+        tests:
+          - not_null
+      - name: identity_confidence_level
+        description: "Confidence level (crm_enriched, loyalty_enriched, login_enriched, anonymous)"

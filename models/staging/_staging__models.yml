@@ -1,0 +1,56 @@
+version: 2
+
+sources:
+  - name: adobe_raw
+    description: "Raw Adobe Analytics Data Feed tables loaded to BigQuery"
+    database: "{{ target.database }}"
+    schema: adobe_raw
+    tables:
+      - name: hit_data
+        description: "Adobe Analytics hit-level data feed"
+        freshness:
+          warn_after: {count: 2, period: day}
+          error_after: {count: 3, period: day}
+        loaded_at_field: "date_time"
+
+models:
+  - name: stg_adobe_events
+    description: "Staging model for Adobe Analytics events - deduplicated and enriched"
+    columns:
+      - name: hit_id
+        description: "Unique event identifier"
+        tests:
+          - unique
+          - not_null
+      - name: visitor_id
+        description: "Legacy visitor ID"
+      - name: mcid
+        description: "Marketing Cloud Visitor ID"
+      - name: stitched_visitor_id
+        description: "Normalized visitor ID (MCID > Legacy)"
+        tests:
+          - not_null
+      - name: party_id
+        description: "Resolved party identifier (cross-device customer ID)"
+      - name: party_id_source
+        description: "Source of party_id (crm, loyalty, login, mcid, legacy_visitor)"
+      - name: session_id
+        description: "Session identifier"
+        tests:
+          - not_null
+      - name: event_timestamp
+        description: "Event timestamp"
+        tests:
+          - not_null
+      - name: event_date
+        description: "Event date for partitioning"
+      - name: page_sk
+        description: "Surrogate key for page dimension"
+      - name: device_sk
+        description: "Surrogate key for device dimension"
+      - name: geo_sk
+        description: "Surrogate key for geo dimension"
+      - name: channel_sk
+        description: "Surrogate key for channel dimension"
+      - name: campaign_sk
+        description: "Surrogate key for campaign dimension"

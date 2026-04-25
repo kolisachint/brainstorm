@@ -1,0 +1,62 @@
+name: 'adobe_analytics_bigquery'
+version: '1.0.0'
+config-version: 2
+
+profile: 'adobe_analytics_bigquery'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+documentation-paths: ["docs"]
+asset-paths: ["assets"]
+
+vars:
+  partition_granularity: 'day'
+  partition_expiration_days: 365
+  identity_stitching_lookback_days: 30
+  session_timeout_minutes: 30
+  max_duplicate_rate_pct: 0.1
+  max_null_rate_pct: 5.0
+
+models:
+  adobe_analytics_bigquery:
+    +materialized: view
+    +on_schema_change: append_new_columns
+    
+    staging:
+      +materialized: incremental
+      +partition_by:
+        field: event_date
+        data_type: date
+        granularity: day
+      +cluster_by: ["visitor_id", "session_id"]
+      +incremental_strategy: insert_overwrite
+      +full_refresh: false
+      
+    marts:
+      dimensions:
+        +materialized: incremental
+        +incremental_strategy: merge
+        +full_refresh: false
+        
+      facts:
+        +materialized: incremental
+        +partition_by:
+          field: event_timestamp
+          data_type: timestamp
+          granularity: day
+        +cluster_by: ["visitor_id", "session_id"]
+        +incremental_strategy: insert_overwrite
+        +full_refresh: false
+
+seeds:
+  adobe_analytics_bigquery:
+    +schema: reference
+    +quote_columns: false
+
+tests:
+  adobe_analytics_bigquery:
+    +store_failures: true
+    +schema: test_failures
