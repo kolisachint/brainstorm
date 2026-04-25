@@ -16,9 +16,10 @@ Adobe Analytics BigQuery data product using dbt. Transforms raw Adobe data into 
 │   ├── facts/         # fct_events, fct_sessions, fct_identity_graph
 │   └── bridge/        # party_visitor_mapping
 ├── intermediate/
-macros/                 # generate_surrogate_key, calculate_revenue_from_products, parse macros
-bigquery_sql/           # Ad-hoc queries (data_exploration, data_quality, maintenance, performance, validation)
-seeds/                  # Reference data
+├── macros/            # generate_surrogate_key, calculate_revenue_from_products, parse macros
+├── commands/          # Automation scripts (refactor-workflow.sh)
+bigquery_sql/          # Ad-hoc queries (data_exploration, data_quality, maintenance, performance, validation)
+seeds/                 # Reference data
 ```
 
 ## WHERE TO LOOK
