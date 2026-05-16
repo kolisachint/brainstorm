@@ -30,7 +30,10 @@ npm install -g @openai/codex
 echo "[install] opencode (Opencode CLI)"
 npm install -g opencode
 
-# Verify all four are installed
+echo "[install] @kolisachint/hoocode-agent (Hoocode Agent)"
+npm install -g @kolisachint/hoocode-agent
+
+# Verify all five are installed
 echo "[verify] installed global packages:"
 npm list -g --depth=0
 
