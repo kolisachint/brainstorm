@@ -3,6 +3,11 @@ output "public_ip" {
   value       = oci_core_public_ip.hoocowork.ip_address
 }
 
+output "hoocowork_url" {
+  description = "URL to access hoocowork on port 8080"
+  value       = "http://${oci_core_public_ip.hoocowork.ip_address}:8080"
+}
+
 output "ssh_command" {
   description = "SSH command to connect to the VM"
   value       = "ssh -i /path/to/your/ssh-private-key ubuntu@${oci_core_public_ip.hoocowork.ip_address}"

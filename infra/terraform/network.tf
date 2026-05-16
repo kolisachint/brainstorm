@@ -64,6 +64,16 @@ resource "oci_core_security_list" "public" {
       max = 443
     }
   }
+
+  ingress_security_rules {
+    source    = "0.0.0.0/0"
+    protocol  = "6"
+    stateless = false
+    tcp_options {
+      min = 8080
+      max = 8080
+    }
+  }
 }
 
 resource "oci_core_subnet" "public" {
