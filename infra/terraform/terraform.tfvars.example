@@ -31,3 +31,5 @@ ssh_public_key = "ssh-ed25519 AAAA...your-public-key-here user@machine"
 # subnet_cidr               = "10.0.1.0/24"
 # instance_display_name     = "hoocowork-vm"
 # availability_domain_index = 0
+# ocpus                     = 4    # A1 Flex: max 4 OCPUs on Always Free
+# memory_in_gbs             = 24   # A1 Flex: max 24 GB on Always Free

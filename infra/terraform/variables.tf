@@ -60,3 +60,15 @@ variable "availability_domain_index" {
   description = "Zero-based index into the list of Availability Domains. Most single-AD free-tier regions use 0."
   default     = 0
 }
+
+variable "ocpus" {
+  type        = number
+  description = "Number of OCPUs for the A1 Flex instance. Always Free limit is 4 total."
+  default     = 4
+}
+
+variable "memory_in_gbs" {
+  type        = number
+  description = "RAM in GB for the A1 Flex instance. Always Free limit is 24 GB total."
+  default     = 24
+}
