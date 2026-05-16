@@ -14,13 +14,15 @@ Provisions an **Ampere A1 Flex** VM (4 OCPUs / 24 GB RAM) on Oracle Cloud Infras
 
 ## CLI tools installed automatically
 
-| Tool | Package | Command |
+| Tool | Package / Source | Command |
 |---|---|---|
 | Hoocowork | `@kolisachint/hoocowork` | `hoocowork` (runs on :8080) |
 | Hoocode Agent | `@kolisachint/hoocode-agent` | `hoocode-agent` |
 | Claude CLI | `@anthropic-ai/claude-code` | `claude` |
 | Codex CLI | `@openai/codex` | `codex` |
 | Opencode CLI | `opencode` | `opencode` |
+| GitHub CLI | `gh` (official APT repo) | `gh` |
+| Git | `git` (apt) | `git` |
 
 ## Directory structure
 

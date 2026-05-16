@@ -195,6 +195,75 @@ opencode --version
 
 ---
 
+## Step 9 — Git & GitHub setup
+
+Run these commands after SSH'ing into the VM.
+
+### Configure git identity
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global init.defaultBranch main
+```
+
+### Generate an SSH key on the VM for GitHub
+
+```bash
+ssh-keygen -t ed25519 -C "you@example.com" -f ~/.ssh/github_vm
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/github_vm
+```
+
+### Log in to GitHub CLI
+
+GitHub CLI (`gh`) is pre-installed on the VM. On a headless server use device flow — it gives you a one-time code to enter in any browser:
+
+```bash
+gh auth login --hostname github.com --git-protocol ssh
+```
+
+When prompted:
+1. Select **GitHub.com**
+2. Select **SSH**
+3. Select **~/.ssh/github_vm.pub** as the key to upload
+4. Give the key a name (e.g. `oci-vm`)
+5. Select **Login with a web browser**
+6. Copy the one-time code shown, open `https://github.com/login/device` in any browser, paste the code
+
+Alternatively, use a Personal Access Token (PAT):
+
+```bash
+echo "YOUR_GITHUB_PAT" | gh auth login --with-token
+# then add the SSH key manually:
+gh ssh-key add ~/.ssh/github_vm.pub --title "oci-vm"
+```
+
+### Configure git to use SSH for GitHub
+
+```bash
+git config --global url."git@github.com:".insteadOf "https://github.com/"
+```
+
+### Test the connection
+
+```bash
+ssh -T git@github.com
+# Expected: Hi <username>! You've successfully authenticated...
+
+gh auth status
+```
+
+### Clone a repo to verify
+
+```bash
+gh repo clone kolisachint/brainstorm
+# or
+git clone git@github.com:kolisachint/brainstorm.git
+```
+
+---
+
 ## Hoocowork server
 
 Hoocowork runs as a systemd service and starts automatically on every boot.
@@ -225,6 +294,8 @@ http://<public_ip>:8080
 | SSH connection refused after apply | Cloud-init still running | Wait 5 min, check `/var/log/setup-vm.log` |
 | `hoocowork.service` failed | Package not yet installed | `sudo npm install -g @kolisachint/hoocowork && sudo systemctl restart hoocowork` |
 | Port 8080 unreachable | OCI firewall + Ubuntu firewall | OCI security list is open; also run `sudo iptables -I INPUT -p tcp --dport 8080 -j ACCEPT` |
+| `gh auth login` hangs | Device flow needs browser | Open `https://github.com/login/device` on any device and enter the code shown |
+| `ssh -T git@github.com` permission denied | SSH key not added to GitHub | Run `gh ssh-key add ~/.ssh/github_vm.pub --title "oci-vm"` |
 
 ---
 
