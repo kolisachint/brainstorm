@@ -192,6 +192,19 @@ Update in `stg_adobe_events.sql`:
 {% endif %}
 ```
 
+## Infrastructure
+
+A free Oracle Cloud VM (Ampere A1 Flex — 4 OCPUs / 24 GB RAM) is provisioned via Terraform to run the hoocowork server and AI CLI tools.
+
+See **[infra/README.md](infra/README.md)** for an overview and **[docs/install.md](docs/install.md)** for the full step-by-step setup guide.
+
+**CLI tools installed on the VM:**
+- `@kolisachint/hoocowork` — runs as a server on port 8080
+- `@kolisachint/hoocode-agent`
+- `@anthropic-ai/claude-code` (Claude CLI)
+- `@openai/codex` (Codex CLI)
+- `opencode`
+
 ## License
 
 MIT
