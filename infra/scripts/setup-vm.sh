@@ -6,22 +6,35 @@ exec > /var/log/setup-vm.log 2>&1
 
 echo "[setup-vm] Starting at $(date)"
 
+# ── System update ────────────────────────────────────────────────────────────
 apt-get update -y
 apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+apt-get install -y curl ca-certificates gnupg git
 
-apt-get install -y curl ca-certificates gnupg
-
+# ── Node.js 20 LTS ──────────────────────────────────────────────────────────
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
 
-node --version
-npm --version
+echo "[versions] node=$(node --version) npm=$(npm --version)"
 
+# ── CLI tools (global npm installs) ─────────────────────────────────────────
+echo "[install] @kolisachint/hoocowork"
 npm install -g @kolisachint/hoocowork
 
-npm list -g --depth=0 @kolisachint/hoocowork || true
+echo "[install] @anthropic-ai/claude-code (Claude CLI)"
+npm install -g @anthropic-ai/claude-code
 
-# Create systemd service to run hoocowork on port 8080
+echo "[install] @openai/codex (Codex CLI)"
+npm install -g @openai/codex
+
+echo "[install] opencode (Opencode CLI)"
+npm install -g opencode
+
+# Verify all four are installed
+echo "[verify] installed global packages:"
+npm list -g --depth=0
+
+# ── Systemd service: hoocowork on port 8080 ──────────────────────────────────
 cat > /etc/systemd/system/hoocowork.service << 'EOF'
 [Unit]
 Description=Hoocowork Server
