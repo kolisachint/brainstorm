@@ -56,9 +56,11 @@ terraform apply
 # 3. Connect (use the SSH command from terraform output)
 ssh -i ~/.ssh/oci_vm ubuntu@<public_ip>
 
-# 4. Verify
-sudo cat /var/log/setup-vm.log   # cloud-init log
-curl http://localhost:8080        # hoocowork server
+# 4. Verify cloud-init finished
+sudo tail -f /var/log/setup-vm.log
+
+# 5. Run post-setup (git + GitHub + API keys — one interactive script)
+curl -fsSL https://raw.githubusercontent.com/kolisachint/brainstorm/main/infra/scripts/post-setup.sh | bash
 ```
 
 ## Terraform outputs

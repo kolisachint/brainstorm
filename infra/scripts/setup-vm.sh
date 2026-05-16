@@ -73,4 +73,16 @@ systemctl daemon-reload
 systemctl enable hoocowork
 systemctl start hoocowork || echo "[setup-vm] WARNING: hoocowork service failed to start — check: journalctl -u hoocowork"
 
+# ── Drop next-steps hint for the ubuntu user ─────────────────────────────────
+cat > /home/ubuntu/NEXT_STEPS.txt << 'MSGEOF'
+VM setup is complete. All CLI tools are installed.
+
+Next: run post-setup to configure git, GitHub, and API keys:
+
+  curl -fsSL https://raw.githubusercontent.com/kolisachint/brainstorm/main/infra/scripts/post-setup.sh | bash
+
+Or check the full guide: docs/install.md (Step 9 onwards)
+MSGEOF
+chown ubuntu:ubuntu /home/ubuntu/NEXT_STEPS.txt
+
 echo "[setup-vm] Completed successfully at $(date)"

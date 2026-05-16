@@ -197,69 +197,36 @@ opencode --version
 
 ## Step 9 — Git & GitHub setup
 
-Run these commands after SSH'ing into the VM.
-
-### Configure git identity
+After SSH'ing into the VM, run the post-setup script. It handles everything interactively in one shot:
 
 ```bash
-git config --global user.name "Your Name"
-git config --global user.email "you@example.com"
-git config --global init.defaultBranch main
+curl -fsSL https://raw.githubusercontent.com/kolisachint/brainstorm/main/infra/scripts/post-setup.sh | bash
 ```
 
-### Generate an SSH key on the VM for GitHub
+> A `NEXT_STEPS.txt` file in your home directory also shows this command on first login.
+
+The script walks you through:
+
+| Step | What it does |
+|---|---|
+| Git identity | Sets `user.name`, `user.email`, default branch, SSH URL rewrite |
+| GitHub SSH key | Generates `~/.ssh/github_vm` (ed25519) if not present |
+| GitHub auth | Device flow (open one URL in any browser) or PAT |
+| Anthropic API key | Saved to `~/.bashrc` as `ANTHROPIC_API_KEY` |
+| OpenAI API key | Saved to `~/.bashrc` as `OPENAI_API_KEY` |
+
+All steps are skippable — press Enter to move past any you don't need yet.
+
+After it completes:
 
 ```bash
-ssh-keygen -t ed25519 -C "you@example.com" -f ~/.ssh/github_vm
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/github_vm
-```
+source ~/.bashrc
 
-### Log in to GitHub CLI
-
-GitHub CLI (`gh`) is pre-installed on the VM. On a headless server use device flow — it gives you a one-time code to enter in any browser:
-
-```bash
-gh auth login --hostname github.com --git-protocol ssh
-```
-
-When prompted:
-1. Select **GitHub.com**
-2. Select **SSH**
-3. Select **~/.ssh/github_vm.pub** as the key to upload
-4. Give the key a name (e.g. `oci-vm`)
-5. Select **Login with a web browser**
-6. Copy the one-time code shown, open `https://github.com/login/device` in any browser, paste the code
-
-Alternatively, use a Personal Access Token (PAT):
-
-```bash
-echo "YOUR_GITHUB_PAT" | gh auth login --with-token
-# then add the SSH key manually:
-gh ssh-key add ~/.ssh/github_vm.pub --title "oci-vm"
-```
-
-### Configure git to use SSH for GitHub
-
-```bash
-git config --global url."git@github.com:".insteadOf "https://github.com/"
-```
-
-### Test the connection
-
-```bash
-ssh -T git@github.com
-# Expected: Hi <username>! You've successfully authenticated...
-
+# Verify
 gh auth status
-```
-
-### Clone a repo to verify
-
-```bash
-gh repo clone kolisachint/brainstorm
-# or
-git clone git@github.com:kolisachint/brainstorm.git
+ssh -T git@github.com
+claude   # needs ANTHROPIC_API_KEY
+codex "hello"   # needs OPENAI_API_KEY
 ```
 
 ---
