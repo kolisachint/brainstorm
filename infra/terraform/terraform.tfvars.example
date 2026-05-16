@@ -1,0 +1,33 @@
+# ============================================================
+# OCI Terraform Variables
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is git-ignored — never commit it.
+# ============================================================
+
+# From: OCI Console > Profile > Tenancy > OCID
+tenancy_ocid = "ocid1.tenancy.oc1..aaaaaaaaTENANCY_OCID_HERE"
+
+# From: OCI Console > Profile > My profile > OCID
+user_ocid = "ocid1.user.oc1..aaaaaaaaUSER_OCID_HERE"
+
+# From: OCI Console > Profile > API Keys > Fingerprint column
+fingerprint = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+
+# Absolute path to the private key PEM downloaded when you created the API key
+private_key_path = "/home/youruser/.oci/oci_api_key.pem"
+
+# Your home region — find it in the OCI Console top-right region dropdown
+# Examples: us-ashburn-1, us-phoenix-1, eu-frankfurt-1, ap-sydney-1
+region = "us-ashburn-1"
+
+# Use the tenancy OCID as compartment_ocid if you have no sub-compartments
+compartment_ocid = "ocid1.tenancy.oc1..aaaaaaaaTENANCY_OCID_HERE"
+
+# Your SSH public key content (the full line from id_ed25519.pub or id_rsa.pub)
+ssh_public_key = "ssh-ed25519 AAAA...your-public-key-here user@machine"
+
+# Optional overrides (defaults shown):
+# vcn_cidr                  = "10.0.0.0/16"
+# subnet_cidr               = "10.0.1.0/24"
+# instance_display_name     = "hoocowork-vm"
+# availability_domain_index = 0
