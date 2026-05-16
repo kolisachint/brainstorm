@@ -178,13 +178,19 @@ Verify Claude CLI:
 
 ```bash
 claude --version
-echo "hello" | claude
+claude   # launches interactive session
 ```
 
 Verify Codex CLI:
 
 ```bash
 codex "write a hello world in Python"
+```
+
+Verify Opencode:
+
+```bash
+opencode --version
 ```
 
 ---

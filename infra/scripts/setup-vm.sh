@@ -2,6 +2,7 @@
 # Runs on first boot via cloud-init (as root).
 # Logs to /var/log/setup-vm.log for post-boot inspection.
 set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
 exec > /var/log/setup-vm.log 2>&1
 
 echo "[setup-vm] Starting at $(date)"

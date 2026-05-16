@@ -52,7 +52,7 @@ terraform init
 terraform apply
 
 # 3. Connect (use the SSH command from terraform output)
-ssh -i ~/.oci/oci_api_key.pem ubuntu@<public_ip>
+ssh -i ~/.ssh/oci_vm ubuntu@<public_ip>
 
 # 4. Verify
 sudo cat /var/log/setup-vm.log   # cloud-init log
