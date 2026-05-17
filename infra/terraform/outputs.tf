@@ -4,8 +4,8 @@ output "public_ip" {
 }
 
 output "hoocowork_url" {
-  description = "URL to access hoocowork on port 8080"
-  value       = "http://${oci_core_public_ip.hoocowork.ip_address}:8080"
+  description = "HTTPS URL to access hoocowork (Caddy terminates TLS, reverse-proxies to localhost:8080)"
+  value       = "https://${replace(oci_core_public_ip.hoocowork.ip_address, ".", "-")}.nip.io"
 }
 
 output "ssh_command" {

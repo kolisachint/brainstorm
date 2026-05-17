@@ -91,12 +91,66 @@ npm install -g @kolisachint/hoocode-agent
 echo "[verify] installed global packages:"
 npm list -g --depth=0
 
-# ── Firewall: open TCP 8080 (Ubuntu iptables INPUT chain rejects by default) ─
-iptables -I INPUT 5 -p tcp --dport 8080 -j ACCEPT
+# ── Firewall: open 80 + 443 (Caddy); hoocowork on 8080 stays loopback-only ───
+# Ubuntu's INPUT chain has a terminal REJECT, so omitting an ACCEPT for 8080
+# is enough to keep it unreachable from the public internet.
+iptables -I INPUT 5 -p tcp --dport 80  -j ACCEPT
+iptables -I INPUT 5 -p tcp --dport 443 -j ACCEPT
 echo "iptables-persistent iptables-persistent/autosave_v4 boolean true" | debconf-set-selections
 echo "iptables-persistent iptables-persistent/autosave_v6 boolean true" | debconf-set-selections
 apt-get install -y iptables-persistent
 netfilter-persistent save
+
+# ── Caddy: HTTPS termination via nip.io (auto Let's Encrypt cert) ────────────
+# nip.io is on the Public Suffix List, so each subdomain gets its own ACME
+# rate-limit bucket. sslip.io shares one bucket and is often exhausted.
+apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -fsSL 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
+  | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -fsSL 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
+  > /etc/apt/sources.list.d/caddy-stable.list
+apt-get update -y
+apt-get install -y caddy
+
+# Wait for public IP to be assigned (reserved IP attaches shortly after boot)
+PUBLIC_IP=""
+for i in $(seq 1 30); do
+  PUBLIC_IP=$(curl -fsS --max-time 5 https://ifconfig.me 2>/dev/null || true)
+  [ -n "$PUBLIC_IP" ] && break
+  sleep 2
+done
+HOST="${PUBLIC_IP//./-}.nip.io"
+echo "[caddy] HTTPS hostname: $HOST"
+
+cat > /etc/caddy/Caddyfile <<CADDY
+${HOST} {
+    encode gzip
+    reverse_proxy localhost:8080
+}
+CADDY
+systemctl enable caddy
+systemctl restart caddy
+
+# ── Unattended security upgrades ─────────────────────────────────────────────
+apt-get install -y unattended-upgrades apt-listchanges
+cat > /etc/apt/apt.conf.d/20auto-upgrades <<'AU'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
+AU
+systemctl enable --now unattended-upgrades
+
+# ── SSH hardening ────────────────────────────────────────────────────────────
+# Disable password auth (key-only), forbid root login, cap auth retries
+cat > /etc/ssh/sshd_config.d/99-hardening.conf <<'SSHC'
+PasswordAuthentication no
+PermitRootLogin no
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+MaxAuthTries 3
+LoginGraceTime 30
+SSHC
+sshd -t && systemctl reload ssh
 
 # ── Systemd service: hoocowork on port 8080 ──────────────────────────────────
 # Restart=always + OOMPolicy=continue: on 1 GB E2.1.Micro, the kernel may OOM-kill

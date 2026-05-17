@@ -9,9 +9,12 @@ Provisions an **AMD E2.1.Micro** VM (1 OCPU / 1 GB RAM, x86_64) on Oracle Cloud 
 | Shape | `VM.Standard.E2.1.Micro` — 1 OCPU, 1 GB RAM (x86_64) + 2 GB swap |
 | OS | Ubuntu 22.04 LTS |
 | Public IP | Reserved (static — survives VM recreation) |
-| Ports open | 22 (SSH), 80 (HTTP), 443 (HTTPS), 8080 (hoocowork) |
+| Ports open | 22 (SSH), 80 (Caddy ACME challenge), 443 (HTTPS) — 8080 closed to public |
+| TLS | Caddy + Let's Encrypt at `https://<dashed-ip>.nip.io` (auto-renew) |
 | Service | `hoocowork.service` — `Restart=always`, `OOMPolicy=continue`, `MemoryMax=600M` |
 | Helper | `/usr/local/bin/hoocowork-health` — status / restart / logs in one command |
+| Auto-patching | `unattended-upgrades` enabled for security updates |
+| SSH | key-only (no passwords), root login disabled, `MaxAuthTries=3` |
 | Cost | Always Free |
 
 ## CLI tools installed automatically

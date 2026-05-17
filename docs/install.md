@@ -106,11 +106,13 @@ Output after apply:
 ```
 Outputs:
 
-hoocowork_url  = "http://xxx.xxx.xxx.xxx:8080"
+hoocowork_url  = "https://xxx-xxx-xxx-xxx.nip.io"   # Caddy + Let's Encrypt
 instance_ocid  = "ocid1.instance.oc1..."
 public_ip      = "xxx.xxx.xxx.xxx"
 ssh_command    = "ssh -i /path/to/key ubuntu@xxx.xxx.xxx.xxx"
 ```
+
+On first boot Caddy fetches a Let's Encrypt cert for `<dashed-public-ip>.nip.io`. The first request after `terraform apply` may take ~10 seconds while the ACME challenge completes; subsequent requests are instant.
 
 ---
 
@@ -137,9 +139,11 @@ When you see `Completed successfully` the setup is done.
 node --version        # v20.x.x
 npm --version
 
-# Hoocowork server (auto-started on port 8080)
+# Hoocowork server — listens on localhost:8080, Caddy proxies HTTPS
 sudo systemctl status hoocowork
-curl http://localhost:8080
+sudo systemctl status caddy
+curl http://localhost:8080                          # from the VM itself
+curl -I https://<dashed-public-ip>.nip.io          # from anywhere
 
 # All five CLI tools
 hoocowork --version
@@ -270,8 +274,17 @@ sudo journalctl -u hoocowork -f
 sudo systemctl restart hoocowork
 
 # Access from your browser
-http://<public_ip>:8080
+https://<dashed-public-ip>.nip.io     # e.g. https://140-245-15-62.nip.io
 ```
+
+### Security hardening applied at boot
+
+| Layer | What's done |
+|---|---|
+| TLS | Caddy on `:443` + Let's Encrypt cert via `<dashed-ip>.nip.io`. Port 8080 closed to internet. |
+| SSH | `PasswordAuthentication no`, `PermitRootLogin no`, `MaxAuthTries 3` |
+| Patching | `unattended-upgrades` enabled — security updates apply automatically |
+| Service | `Restart=always`, `OOMPolicy=continue`, `MemoryMax=600M` — hoocowork survives OOM kills |
 
 ---
 

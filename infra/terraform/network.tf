@@ -65,15 +65,8 @@ resource "oci_core_security_list" "public" {
     }
   }
 
-  ingress_security_rules {
-    source    = "0.0.0.0/0"
-    protocol  = "6"
-    stateless = false
-    tcp_options {
-      min = 8080
-      max = 8080
-    }
-  }
+  # Port 8080 is the hoocowork backend — Caddy terminates TLS on 443 and
+  # reverse-proxies to localhost:8080. No external access is needed.
 }
 
 resource "oci_core_subnet" "public" {

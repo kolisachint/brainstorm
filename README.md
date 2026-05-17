@@ -34,9 +34,11 @@ Terraform prints the public IP and hoocowork URL when done:
 
 ```
 public_ip      = "xxx.xxx.xxx.xxx"
-hoocowork_url  = "http://xxx.xxx.xxx.xxx:8080"
-ssh_command    = "ssh -i ~/.oci/oci_api_key.pem ubuntu@xxx.xxx.xxx.xxx"
+hoocowork_url  = "https://xxx-xxx-xxx-xxx.nip.io"   # Caddy + Let's Encrypt
+ssh_command    = "ssh -i ~/.ssh/oci_vm ubuntu@xxx.xxx.xxx.xxx"
 ```
+
+Caddy terminates TLS on `:443` using a free Let's Encrypt certificate (auto-renewed) and reverse-proxies to hoocowork on `localhost:8080`. Port 8080 is closed to the public internet.
 
 ## Health check from your laptop
 
