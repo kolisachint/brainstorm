@@ -222,6 +222,71 @@ esac
 EOF
 chmod +x /usr/local/bin/hoocowork-health
 
+# ── Nightly CLI auto-upgrade (systemd timer) ─────────────────────────────────
+# Runs all `npm install -g <pkg>@latest` overnight (~03:00 UTC + jitter).
+# Restarts hoocowork only if its version actually changed.
+cat > /usr/local/bin/upgrade-clis << 'UPG'
+#!/bin/bash
+set -euo pipefail
+PACKAGES=(
+  "@kolisachint/hoocowork"
+  "@kolisachint/hoocode-agent"
+  "@anthropic-ai/claude-code"
+  "@openai/codex"
+  "opencode-ai"
+  "bun"
+)
+echo "[upgrade-clis] starting at $(date -Iseconds)"
+HOOCOWORK_BEFORE=$(npm list -g --depth=0 --json 2>/dev/null \
+  | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("dependencies",{}).get("@kolisachint/hoocowork",{}).get("version","none"))' \
+  || echo none)
+for pkg in "${PACKAGES[@]}"; do
+  echo "[upgrade-clis] $pkg"
+  npm install -g "${pkg}@latest" --silent || echo "[upgrade-clis] WARN: $pkg failed"
+done
+chmod +x /usr/lib/node_modules/@kolisachint/hoocowork/dist-server/server/cli.js 2>/dev/null || true
+HOOCOWORK_AFTER=$(npm list -g --depth=0 --json 2>/dev/null \
+  | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("dependencies",{}).get("@kolisachint/hoocowork",{}).get("version","none"))' \
+  || echo none)
+if [ "$HOOCOWORK_BEFORE" != "$HOOCOWORK_AFTER" ]; then
+  echo "[upgrade-clis] hoocowork: $HOOCOWORK_BEFORE -> $HOOCOWORK_AFTER (restarting)"
+  systemctl restart hoocowork
+else
+  echo "[upgrade-clis] hoocowork unchanged at $HOOCOWORK_AFTER"
+fi
+echo "[upgrade-clis] done at $(date -Iseconds)"
+UPG
+chmod +x /usr/local/bin/upgrade-clis
+
+cat > /etc/systemd/system/upgrade-clis.service << 'EOF'
+[Unit]
+Description=Upgrade all AI CLIs to @latest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/upgrade-clis
+StandardOutput=journal
+StandardError=journal
+EOF
+
+cat > /etc/systemd/system/upgrade-clis.timer << 'EOF'
+[Unit]
+Description=Nightly AI CLI upgrade
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+RandomizedDelaySec=3600
+Persistent=true
+Unit=upgrade-clis.service
+
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+systemctl enable --now upgrade-clis.timer
+
 # ── Drop next-steps hint for the ubuntu user ─────────────────────────────────
 cat > /home/ubuntu/NEXT_STEPS.txt << 'MSGEOF'
 VM setup is complete. All CLI tools are installed.

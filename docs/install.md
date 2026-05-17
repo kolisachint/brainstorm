@@ -277,6 +277,24 @@ sudo systemctl restart hoocowork
 https://<dashed-public-ip>.nip.io     # e.g. https://140-245-15-62.nip.io
 ```
 
+### Nightly CLI auto-upgrade
+
+A systemd timer (`upgrade-clis.timer`) runs every night around 03:00 UTC (with up to 1 hour of jitter) and re-runs `npm install -g <pkg>@latest` for all five AI CLIs plus bun. If hoocowork's version actually changed, the service is restarted automatically; otherwise it keeps running uninterrupted.
+
+```bash
+# When does it run next?
+systemctl list-timers upgrade-clis.timer
+
+# What happened on the last run?
+journalctl -u upgrade-clis.service -n 50
+
+# Force an upgrade right now
+sudo systemctl start upgrade-clis.service
+
+# Stop nightly upgrades (keep the script, just disable the timer)
+sudo systemctl disable --now upgrade-clis.timer
+```
+
 ### Security hardening applied at boot
 
 | Layer | What's done |
@@ -284,6 +302,7 @@ https://<dashed-public-ip>.nip.io     # e.g. https://140-245-15-62.nip.io
 | TLS | Caddy on `:443` + Let's Encrypt cert via `<dashed-ip>.nip.io`. Port 8080 closed to internet. |
 | SSH | `PasswordAuthentication no`, `PermitRootLogin no`, `MaxAuthTries 3` |
 | Patching | `unattended-upgrades` enabled — security updates apply automatically |
+| CLI auto-upgrade | `upgrade-clis.timer` runs nightly (~03:00 UTC), pulls `@latest` for hoocowork, Claude, Codex, Opencode, hoocode-agent, bun |
 | Service | `Restart=always`, `OOMPolicy=continue`, `MemoryMax=600M` — hoocowork survives OOM kills |
 
 ---

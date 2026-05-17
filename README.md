@@ -52,5 +52,6 @@ ssh -i ~/.ssh/oci_vm ubuntu@<public_ip> hoocowork-health logs 100  # last 100 lo
 
 ## Docs
 
-- [infra/README.md](infra/README.md) — infrastructure overview
 - [docs/install.md](docs/install.md) — full step-by-step setup guide
+- [docs/connect.md](docs/connect.md) — how to connect from laptop, iPhone/iPad, or browser
+- [infra/README.md](infra/README.md) — infrastructure overview

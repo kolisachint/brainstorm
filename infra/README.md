@@ -14,6 +14,7 @@ Provisions an **AMD E2.1.Micro** VM (1 OCPU / 1 GB RAM, x86_64) on Oracle Cloud 
 | Service | `hoocowork.service` — `Restart=always`, `OOMPolicy=continue`, `MemoryMax=600M` |
 | Helper | `/usr/local/bin/hoocowork-health` — status / restart / logs in one command |
 | Auto-patching | `unattended-upgrades` enabled for security updates |
+| Auto-CLI-upgrade | `upgrade-clis.timer` runs nightly (~03:00 UTC + jitter), pulls `@latest` for all five CLIs, restarts hoocowork only if its version changed |
 | SSH | key-only (no passwords), root login disabled, `MaxAuthTries=3` |
 | Cost | Always Free |
 
@@ -47,7 +48,8 @@ infra/
 
 ## Quick start
 
-See **[docs/install.md](../docs/install.md)** for the full step-by-step guide.
+- **[docs/install.md](../docs/install.md)** — full step-by-step setup guide
+- **[docs/connect.md](../docs/connect.md)** — connecting from laptop, iPhone/iPad, or any browser
 
 ```bash
 # 1. Copy and fill in credentials
