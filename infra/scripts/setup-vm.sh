@@ -7,10 +7,20 @@ exec > /var/log/setup-vm.log 2>&1
 
 echo "[setup-vm] Starting at $(date)"
 
+# ── Swap (npm global installs OOM on 1 GB E2.1.Micro without it) ─────────────
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo "/swapfile none swap sw 0 0" >> /etc/fstab
+  echo "[setup-vm] 2 GB swap enabled"
+fi
+
 # ── System update ────────────────────────────────────────────────────────────
 apt-get update -y
 apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
-apt-get install -y curl ca-certificates gnupg git
+apt-get install -y curl ca-certificates gnupg git build-essential
 
 # ── GitHub CLI ──────────────────────────────────────────────────────────────
 curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
@@ -29,9 +39,15 @@ apt-get install -y nodejs
 
 echo "[versions] node=$(node --version) npm=$(npm --version)"
 
+# ── Bun (required by @kolisachint/hoocowork postinstall) ────────────────────
+npm install -g bun
+echo "[versions] bun=$(bun --version)"
+
 # ── CLI tools (global npm installs) ─────────────────────────────────────────
 echo "[install] @kolisachint/hoocowork"
 npm install -g @kolisachint/hoocowork
+# hoocowork ships its bin without the executable bit; systemd ExecStart needs it
+chmod +x /usr/lib/node_modules/@kolisachint/hoocowork/dist-server/server/cli.js
 
 echo "[install] @anthropic-ai/claude-code (Claude CLI)"
 npm install -g @anthropic-ai/claude-code
@@ -39,8 +55,8 @@ npm install -g @anthropic-ai/claude-code
 echo "[install] @openai/codex (Codex CLI)"
 npm install -g @openai/codex
 
-echo "[install] opencode (Opencode CLI)"
-npm install -g opencode
+echo "[install] opencode-ai (Opencode CLI)"
+npm install -g opencode-ai
 
 echo "[install] @kolisachint/hoocode-agent (Hoocode Agent)"
 npm install -g @kolisachint/hoocode-agent
@@ -48,6 +64,13 @@ npm install -g @kolisachint/hoocode-agent
 # Verify all five are installed
 echo "[verify] installed global packages:"
 npm list -g --depth=0
+
+# ── Firewall: open TCP 8080 (Ubuntu iptables INPUT chain rejects by default) ─
+iptables -I INPUT 5 -p tcp --dport 8080 -j ACCEPT
+echo "iptables-persistent iptables-persistent/autosave_v4 boolean true" | debconf-set-selections
+echo "iptables-persistent iptables-persistent/autosave_v6 boolean true" | debconf-set-selections
+apt-get install -y iptables-persistent
+netfilter-persistent save
 
 # ── Systemd service: hoocowork on port 8080 ──────────────────────────────────
 cat > /etc/systemd/system/hoocowork.service << 'EOF'
