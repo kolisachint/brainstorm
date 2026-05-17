@@ -33,6 +33,32 @@ apt-get install -y gh
 
 echo "[versions] gh=$(gh --version | head -1)"
 
+# ── Git defaults for the ubuntu user ────────────────────────────────────────
+# Rewrite every HTTPS GitHub URL to SSH at git layer. So even repos cloned via
+# HTTPS push over SSH — no credential prompts, no PAT expiry. post-setup.sh
+# generates the SSH key + uploads to GitHub via `gh`.
+sudo -u ubuntu git config --global init.defaultBranch main
+sudo -u ubuntu git config --global url."git@github.com:".insteadOf "https://github.com/"
+
+# Pre-trust github.com host key so the first ssh attempt doesn't prompt
+sudo -u ubuntu mkdir -p /home/ubuntu/.ssh
+sudo -u ubuntu ssh-keyscan -t ed25519,rsa github.com >> /home/ubuntu/.ssh/known_hosts 2>/dev/null
+sudo -u ubuntu sort -u /home/ubuntu/.ssh/known_hosts -o /home/ubuntu/.ssh/known_hosts
+chmod 600 /home/ubuntu/.ssh/known_hosts
+
+# SSH config skeleton — post-setup.sh fills in IdentityFile after key gen
+if ! grep -q "Host github.com" /home/ubuntu/.ssh/config 2>/dev/null; then
+  cat >> /home/ubuntu/.ssh/config <<'CFG'
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/github_vm
+  IdentitiesOnly yes
+CFG
+  chown ubuntu:ubuntu /home/ubuntu/.ssh/config
+  chmod 600 /home/ubuntu/.ssh/config
+fi
+
 # ── Node.js 20 LTS ──────────────────────────────────────────────────────────
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
