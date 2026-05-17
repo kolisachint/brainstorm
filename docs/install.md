@@ -197,7 +197,14 @@ opencode --version
 
 ## Step 9 — Git & GitHub setup
 
-After SSH'ing into the VM, run the post-setup script. It handles everything interactively in one shot:
+Cloud-init has already configured the non-interactive parts on first boot:
+
+- `init.defaultBranch = main`
+- `url."git@github.com:".insteadOf "https://github.com/"` — every HTTPS GitHub clone pushes via SSH transparently
+- `~/.ssh/config` skeleton pointing `Host github.com` → `~/.ssh/github_vm`
+- `github.com` pre-trusted in `~/.ssh/known_hosts`
+
+What's left is to generate the SSH key, register it with GitHub, and set your git identity. Run the post-setup script for that:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kolisachint/brainstorm/main/infra/scripts/post-setup.sh | bash
@@ -209,9 +216,9 @@ The script walks you through:
 
 | Step | What it does |
 |---|---|
-| Git identity | Sets `user.name`, `user.email`, default branch, SSH URL rewrite |
+| Git identity | Sets `user.name` and `user.email` (insteadOf rewrite is already set by cloud-init) |
 | GitHub SSH key | Generates `~/.ssh/github_vm` (ed25519) if not present |
-| GitHub auth | Device flow (open one URL in any browser) or PAT |
+| GitHub auth | Device flow (open one URL in any browser) or PAT — uploads SSH key via `gh ssh-key add` |
 | Anthropic API key | Saved to `~/.bashrc` as `ANTHROPIC_API_KEY` |
 | OpenAI API key | Saved to `~/.bashrc` as `OPENAI_API_KEY` |
 
@@ -233,16 +240,33 @@ codex "hello"   # needs OPENAI_API_KEY
 
 ## Hoocowork server
 
-Hoocowork runs as a systemd service and starts automatically on every boot.
+Hoocowork runs as a systemd service and starts automatically on every boot. The unit is hardened for the 1 GB E2.1.Micro:
+
+- `Restart=always` — restarts on any exit
+- `OOMPolicy=continue` — prevents kernel OOM kills from being treated as a clean stop (so `Restart=always` still fires)
+- `MemoryMax=600M` — caps the process so an OOM never starves sshd or the system
+- `StartLimitBurst=10` / `StartLimitIntervalSec=300` — survives crash loops without giving up
+
+### `hoocowork-health` — one-command status / restart / logs
+
+Installed at `/usr/local/bin/hoocowork-health` by cloud-init. Works locally on the VM or via SSH from your laptop:
 
 ```bash
-# Status
+# On the VM
+hoocowork-health           # service + port + HTTP + memory + recent OOM kills
+hoocowork-health restart   # restart and show status
+hoocowork-health logs 100  # tail N lines from the journal (default 50)
+
+# From your laptop
+ssh -i ~/.ssh/oci_vm ubuntu@<public_ip> hoocowork-health
+ssh -i ~/.ssh/oci_vm ubuntu@<public_ip> hoocowork-health restart
+```
+
+### Raw systemd commands (if you prefer)
+
+```bash
 sudo systemctl status hoocowork
-
-# Logs
 sudo journalctl -u hoocowork -f
-
-# Restart
 sudo systemctl restart hoocowork
 
 # Access from your browser
@@ -260,9 +284,11 @@ http://<public_ip>:8080
 | Image lookup returns empty | ARM image string differs in your region | Change `operating_system_version` to `"22.04 Minimal aarch64"` in `compute.tf` |
 | SSH connection refused after apply | Cloud-init still running | Wait 5 min, check `/var/log/setup-vm.log` |
 | `hoocowork.service` failed | Package not yet installed | `sudo npm install -g @kolisachint/hoocowork && sudo systemctl restart hoocowork` |
+| `hoocowork` keeps OOM-restarting | 1 GB RAM is tight; another process is heavy | Run `hoocowork-health` to inspect, then stop other npm processes. Service will self-recover. |
 | Port 8080 unreachable | OCI firewall + Ubuntu firewall | OCI security list is open; also run `sudo iptables -I INPUT -p tcp --dport 8080 -j ACCEPT` |
 | `gh auth login` hangs | Device flow needs browser | Open `https://github.com/login/device` on any device and enter the code shown |
 | `ssh -T git@github.com` permission denied | SSH key not added to GitHub | Run `gh ssh-key add ~/.ssh/github_vm.pub --title "oci-vm"` |
+| `git push` fails: `could not read Username for 'https://github.com'` | HTTPS remote without credential helper | Cloud-init now sets `insteadOf` to rewrite HTTPS → SSH globally. If you see this on an existing VM, run `git config --global url."git@github.com:".insteadOf "https://github.com/"` |
 
 ---
 

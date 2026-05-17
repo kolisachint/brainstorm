@@ -1,15 +1,17 @@
 # Infrastructure — Oracle Cloud Free Tier VM
 
-Provisions an **Ampere A1 Flex** VM (4 OCPUs / 24 GB RAM) on Oracle Cloud Infrastructure Always Free tier with a reserved public IP. On first boot the VM automatically installs Node.js 20, five AI CLI tools, and starts the hoocowork server on port 8080.
+Provisions an **AMD E2.1.Micro** VM (1 OCPU / 1 GB RAM, x86_64) on Oracle Cloud Infrastructure Always Free tier with a reserved public IP. On first boot the VM automatically adds 2 GB swap, installs Node.js 20, five AI CLI tools, configures git with an SSH-only push path, and starts the hoocowork server on port 8080.
 
 ## What gets deployed
 
 | Resource | Detail |
 |---|---|
-| Shape | `VM.Standard.A1.Flex` — 4 OCPUs, 24 GB RAM (ARM64) |
+| Shape | `VM.Standard.E2.1.Micro` — 1 OCPU, 1 GB RAM (x86_64) + 2 GB swap |
 | OS | Ubuntu 22.04 LTS |
 | Public IP | Reserved (static — survives VM recreation) |
 | Ports open | 22 (SSH), 80 (HTTP), 443 (HTTPS), 8080 (hoocowork) |
+| Service | `hoocowork.service` — `Restart=always`, `OOMPolicy=continue`, `MemoryMax=600M` |
+| Helper | `/usr/local/bin/hoocowork-health` — status / restart / logs in one command |
 | Cost | Always Free |
 
 ## CLI tools installed automatically
@@ -36,7 +38,8 @@ infra/
 │   ├── outputs.tf               # public_ip, hoocowork_url, ssh_command
 │   └── terraform.tfvars.example # Safe template — copy to terraform.tfvars
 └── scripts/
-    └── setup-vm.sh              # Cloud-init: installs Node.js + all CLIs
+    ├── setup-vm.sh              # Cloud-init: installs Node.js + all CLIs, git defaults, hoocowork-health
+    └── post-setup.sh            # Interactive: git identity, GitHub SSH key, gh auth, API keys
 ```
 
 ## Quick start
