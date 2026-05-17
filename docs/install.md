@@ -260,6 +260,7 @@ Installed at `/usr/local/bin/hoocowork-health` by cloud-init. Works locally on t
 hoocowork-health           # service + port + HTTP + memory + recent OOM kills
 hoocowork-health restart   # restart and show status
 hoocowork-health logs 100  # tail N lines from the journal (default 50)
+hoocowork-health upgrade   # run nightly upgrade now (all CLIs)
 
 # From your laptop
 ssh -i ~/.ssh/oci_vm ubuntu@<public_ip> hoocowork-health

@@ -189,6 +189,7 @@ cat > /usr/local/bin/hoocowork-health << 'EOF'
 #   hoocowork-health              # show service + system health
 #   hoocowork-health restart      # restart the service
 #   hoocowork-health logs [N]     # tail N (default 50) log lines
+#   hoocowork-health upgrade      # run nightly upgrade now (all CLIs)
 set -e
 cmd="${1:-status}"
 case "$cmd" in
@@ -199,6 +200,11 @@ case "$cmd" in
     ;;
   logs)
     journalctl -u hoocowork -n "${2:-50}" --no-pager
+    ;;
+  upgrade)
+    echo "── starting upgrade-clis.service (this may take 2-5 min) ──"
+    sudo systemctl start upgrade-clis.service
+    journalctl -u upgrade-clis.service -n 50 --no-pager
     ;;
   status|*)
     echo "── service ───────────────────────────────────────────"

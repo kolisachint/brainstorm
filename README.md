@@ -48,6 +48,7 @@ Once the VM is up, you can check or restart the service from anywhere:
 ssh -i ~/.ssh/oci_vm ubuntu@<public_ip> hoocowork-health           # status + memory + port + HTTP + OOM kills
 ssh -i ~/.ssh/oci_vm ubuntu@<public_ip> hoocowork-health restart   # restart the service
 ssh -i ~/.ssh/oci_vm ubuntu@<public_ip> hoocowork-health logs 100  # last 100 log lines
+ssh -i ~/.ssh/oci_vm ubuntu@<public_ip> hoocowork-health upgrade   # upgrade all CLIs now
 ```
 
 ## Docs
