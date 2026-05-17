@@ -170,7 +170,7 @@ ExecStart=/usr/bin/hoocowork --port 8080
 Restart=always
 RestartSec=5
 OOMPolicy=continue
-MemoryMax=600M
+MemoryMax=800M
 StandardOutput=journal
 StandardError=journal
 
